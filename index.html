@@ -346,9 +346,6 @@
       <label class="admin-sub-label" for="lsEditMessage">Reveal Message</label>
       <input type="text" id="lsEditMessage" placeholder="আরে আমি সিঙ্গেল, আমার কনো প্রেম কাহিনি নেই।">
 
-      <label class="admin-sub-label" for="lsEditAudio">Audio File / MP3 URL</label>
-      <input type="text" id="lsEditAudio" placeholder="love_story.mp3 বা https://.../song.mp3">
-
       <button id="saveLoveStoryBtn" onclick="saveLoveStoryConfig()">Save Love Story</button>
       <p id="lsSaveStatus" style="color:#a1a1aa;font-size:12px;text-align:center;margin-bottom:8px"></p>
 
@@ -469,7 +466,6 @@
       document.getElementById('lsEditTitle').value = loveStoryConfig.title || DEFAULT_LOVE_STORY.title;
       document.getElementById('lsEditName').value = loveStoryConfig.name || DEFAULT_LOVE_STORY.name;
       document.getElementById('lsEditMessage').value = loveStoryConfig.message || DEFAULT_LOVE_STORY.message;
-      document.getElementById('lsEditAudio').value = loveStoryConfig.audioSrc || DEFAULT_LOVE_STORY.audioSrc;
       document.getElementById('lsSaveStatus').innerText = '';
     }
 
@@ -482,7 +478,7 @@
             title: (typeof d.title === 'string' && d.title.trim()) ? d.title.trim() : DEFAULT_LOVE_STORY.title,
             name: (typeof d.name === 'string' && d.name.trim()) ? d.name.trim() : DEFAULT_LOVE_STORY.name,
             message: (typeof d.message === 'string' && d.message.trim()) ? d.message.trim() : DEFAULT_LOVE_STORY.message,
-            audioSrc: (typeof d.audioSrc === 'string' && d.audioSrc.trim()) ? d.audioSrc.trim() : DEFAULT_LOVE_STORY.audioSrc
+            audioSrc: DEFAULT_LOVE_STORY.audioSrc
           };
           applyLoveStoryToUI();
         }
@@ -535,7 +531,7 @@
 
     function playLoveStorySound() {
       if (!isLoveStoryModalOpen) return;
-      const srcToUse = normalizeAudioUrl(loveStoryConfig.audioSrc);
+      const srcToUse = normalizeAudioUrl(DEFAULT_LOVE_STORY.audioSrc);
 
       stopLoveStoryAudio();
 
@@ -600,7 +596,7 @@
         title: document.getElementById('lsEditTitle').value.trim().slice(0, 60) || DEFAULT_LOVE_STORY.title,
         name: document.getElementById('lsEditName').value.trim().slice(0, 80) || DEFAULT_LOVE_STORY.name,
         message: document.getElementById('lsEditMessage').value.trim().slice(0, 240) || DEFAULT_LOVE_STORY.message,
-        audioSrc: document.getElementById('lsEditAudio').value.trim().slice(0, 350) || DEFAULT_LOVE_STORY.audioSrc
+        audioSrc: DEFAULT_LOVE_STORY.audioSrc
       };
 
       btn.disabled = true;
