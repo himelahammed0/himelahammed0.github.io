@@ -97,8 +97,6 @@
     .ls-char { display: inline-block; opacity: 0; transform: translateY(14px) scale(0.8); transition: opacity 0.18s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1); }
     .ls-char.visible { opacity: 1; transform: translateY(0) scale(1); }
     .ls-char.space { width: 7px; }
-    .ls-plus-tag { display: inline-flex; align-items: center; justify-content: center; margin-left: 6px; padding: 1px 8px; border-radius: 999px; font-size: 17px; font-weight: 700; color: #fff; background: linear-gradient(135deg, #ec4899, #8a5cff); box-shadow: 0 0 14px rgba(236, 72, 153, 0.55); opacity: 0; transform: scale(0.5); transition: opacity 0.24s ease, transform 0.28s cubic-bezier(0.22, 1, 0.36, 1); }
-    .ls-plus-tag.visible { opacity: 1; transform: scale(1); }
     .ls-loading-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 8px 0 18px; }
     .ls-loading-wrap.hidden { display: none; }
     .ls-spinner { width: 28px; height: 28px; border-radius: 50%; border: 3px solid rgba(167, 139, 250, 0.2); border-top-color: #a78bfa; border-right-color: #ec4899; animation: spinRing 0.85s linear infinite; }
@@ -106,8 +104,16 @@
     .ls-reveal-box { display: none; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(236, 72, 153, 0.28); border-radius: 18px; padding: 18px 14px; margin-top: 6px; animation: popUpBox 0.35s ease; }
     .ls-reveal-box.active { display: block; }
     .ls-reveal-msg { color: #fff; font-size: 15px; font-weight: 600; line-height: 1.65; }
-    .ls-audio-note { margin-top: 10px; font-size: 11px; color: #a78bfa; }
     .ls-btn-close { margin-top: 18px; width: 100%; padding: 11px; border-radius: 13px; border: 1px solid #333; background: #232328; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+    /* ========================================= Professional Success Login Overlay ========================================= */
+    #loginSuccessOverlay { position: fixed; inset: 0; background: rgba(5, 5, 8, 0.92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); display: none; justify-content: center; align-items: center; z-index: 3500; padding: 20px; animation: fadeInModal 0.25s ease; }
+    .success-login-card { width: 100%; max-width: 310px; background: linear-gradient(160deg, #1b1b22, #121216); border: 1px solid rgba(34, 197, 94, 0.45); border-radius: 26px; padding: 30px 22px; text-align: center; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 35px rgba(34, 197, 94, 0.22); animation: popUpBox 0.32s cubic-bezier(0.16, 1, 0.3, 1); }
+    .success-ring { position: relative; width: 74px; height: 74px; margin: 0 auto 16px; border-radius: 50%; background: rgba(34, 197, 94, 0.14); border: 2px solid #22c55e; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 24px rgba(34, 197, 94, 0.4); animation: successPulse 1.4s ease infinite; }
+    .success-ring i { font-size: 32px; color: #22c55e; animation: checkPop 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+    @keyframes successPulse { 0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.55); } 70% { box-shadow: 0 0 0 16px rgba(34, 197, 94, 0); } 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); } }
+    @keyframes checkPop { 0% { transform: scale(0.3) rotate(-25deg); opacity: 0; } 70% { transform: scale(1.15) rotate(4deg); opacity: 1; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
+    .success-title { font-size: 20px; font-weight: 700; color: #ffffff; letter-spacing: 0.3px; margin-bottom: 5px; }
+    .success-sub { font-size: 12px; color: #a1a1aa; }
     /* ========================================= My Gallery ট্রিগার কার্ড (নিচে থাকবে) ========================================= */
     .gallery-trigger { width: 100%; max-width: 400px; margin-top: 16px; background: #18181b; border: 1px solid #2a2a2e; border-radius: 24px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; transition: all 0.25s ease; }
     .gallery-trigger:hover { background: #1e1e22; border-color: #3f3f46; transform: translateY(-1px); }
@@ -171,10 +177,8 @@
     <source src="gallery_song.mp3" type="audio/mpeg">
   </audio>
 
-  <!-- Love Story অডিও (ডিফল্ট love_story.mp3, অ্যাডমিন থেকে বদলানো যাবে) -->
-  <audio id="loveStoryAudio" preload="auto">
-    <source src="love_story.mp3" type="audio/mpeg">
-  </audio>
+  <!-- Love Story অডিও (ডিফল্ট love_story.mp3, অ্যাডমিন থেকে যেকোনো mp3 সেট করা যাবে) -->
+  <audio id="loveStoryAudio" src="love_story.mp3" preload="auto"></audio>
 
   <div class="card">
     <div class="verified"><i class="fas fa-check-circle"></i> Official Verified</div>
@@ -261,10 +265,20 @@
 
       <div id="lsRevealBox" class="ls-reveal-box">
         <div id="lsRevealText" class="ls-reveal-msg">আরে আমি সিঙ্গেল, আমার কনো প্রেম কাহিনি নেই।</div>
-        <div id="lsAudioNote" class="ls-audio-note"><i class="fas fa-volume-up"></i> Playing loud...</div>
       </div>
 
       <button class="ls-btn-close" onclick="closeLoveStoryModal()">Close</button>
+    </div>
+  </div>
+
+  <!-- Success Login Overlay -->
+  <div id="loginSuccessOverlay">
+    <div class="success-login-card">
+      <div class="success-ring">
+        <i class="fas fa-check"></i>
+      </div>
+      <div class="success-title">Success Login</div>
+      <div class="success-sub">Welcome back, Admin</div>
     </div>
   </div>
 
@@ -332,8 +346,8 @@
       <label class="admin-sub-label" for="lsEditMessage">Reveal Message</label>
       <input type="text" id="lsEditMessage" placeholder="আরে আমি সিঙ্গেল, আমার কনো প্রেম কাহিনি নেই।">
 
-      <label class="admin-sub-label" for="lsEditAudio">Audio File / URL (e.g. love_story.mp3)</label>
-      <input type="text" id="lsEditAudio" placeholder="love_story.mp3">
+      <label class="admin-sub-label" for="lsEditAudio">Audio File / MP3 URL</label>
+      <input type="text" id="lsEditAudio" placeholder="love_story.mp3 বা https://.../song.mp3">
 
       <button id="saveLoveStoryBtn" onclick="saveLoveStoryConfig()">Save Love Story</button>
       <p id="lsSaveStatus" style="color:#a1a1aa;font-size:12px;text-align:center;margin-bottom:8px"></p>
@@ -422,16 +436,16 @@
     };
     let loveStoryConfig = { ...DEFAULT_LOVE_STORY };
     let loveStoryTimers = [];
+    let isLoveStoryModalOpen = false;
 
     function applyLoveStoryToUI() {
       document.getElementById('loveStoryBtnLabel').innerText = loveStoryConfig.title || DEFAULT_LOVE_STORY.title;
       document.getElementById('lsRevealText').innerText = loveStoryConfig.message || DEFAULT_LOVE_STORY.message;
 
       const audioEl = document.getElementById('loveStoryAudio');
-      const desiredSrc = loveStoryConfig.audioSrc || DEFAULT_LOVE_STORY.audioSrc;
-      const sourceEl = audioEl.querySelector('source');
-      if (sourceEl && sourceEl.getAttribute('src') !== desiredSrc) {
-        sourceEl.setAttribute('src', desiredSrc);
+      const desiredSrc = (loveStoryConfig.audioSrc || DEFAULT_LOVE_STORY.audioSrc).trim();
+      if (audioEl && audioEl.getAttribute('src') !== desiredSrc) {
+        audioEl.setAttribute('src', desiredSrc);
         audioEl.load();
       }
     }
@@ -488,18 +502,63 @@
         loveStoryTimers.push(t);
       });
 
-      const plusEl = document.createElement('span');
-      plusEl.className = 'ls-plus-tag';
-      plusEl.textContent = '+';
-      stageEl.appendChild(plusEl);
-
       const totalNameTime = 120 + chars.length * stepDelay + 140;
-      const tPlus = setTimeout(() => {
-        plusEl.classList.add('visible');
-      }, totalNameTime);
-      loveStoryTimers.push(tPlus);
-
       return totalNameTime + 420;
+    }
+
+    function unlockAudioOnUserTap(audioEl) {
+      if (!audioEl) return;
+      try {
+        audioEl.muted = true;
+        audioEl.volume = 1.0;
+        const p = audioEl.play();
+        if (p && typeof p.then === 'function') {
+          p.then(() => {
+            audioEl.pause();
+            audioEl.currentTime = 0;
+            audioEl.muted = false;
+          }).catch(() => {
+            audioEl.muted = false;
+          });
+        } else {
+          audioEl.muted = false;
+        }
+      } catch (_) {
+        audioEl.muted = false;
+      }
+    }
+
+    function playLoveStorySound() {
+      if (!isLoveStoryModalOpen) return;
+      const lsAudio = document.getElementById('loveStoryAudio');
+      if (!lsAudio) return;
+
+      const srcToUse = (loveStoryConfig.audioSrc || DEFAULT_LOVE_STORY.audioSrc).trim();
+      if (lsAudio.getAttribute('src') !== srcToUse) {
+        lsAudio.setAttribute('src', srcToUse);
+        lsAudio.load();
+      }
+
+      lsAudio.muted = false;
+      lsAudio.volume = 1.0;
+      try {
+        lsAudio.currentTime = 0;
+      } catch (_) {}
+
+      const playPromise = lsAudio.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(() => {
+          const resumeOnTap = () => {
+            if (isLoveStoryModalOpen && lsAudio.paused) {
+              lsAudio.muted = false;
+              lsAudio.volume = 1.0;
+              lsAudio.play().catch(() => {});
+            }
+            document.removeEventListener('pointerdown', resumeOnTap);
+          };
+          document.addEventListener('pointerdown', resumeOnTap, { once: true });
+        });
+      }
     }
 
     function openLoveStoryModal() {
@@ -507,37 +566,35 @@
       stopOtherAudios('loveStoryAudio');
       applyLoveStoryToUI();
 
+      isLoveStoryModalOpen = true;
       const modal = document.getElementById('loveStoryModal');
       const nameEl = document.getElementById('lsAnimatedName');
       const loadingEl = document.getElementById('lsLoadingBox');
       const revealEl = document.getElementById('lsRevealBox');
-      const noteEl = document.getElementById('lsAudioNote');
+      const lsAudio = document.getElementById('loveStoryAudio');
+
+      // ইউজার ক্লিক করার মুহূর্তেই অডিও আনলক করে রাখা যাতে setTimeout-এর পরও শব্দ ঠিকমতো শোনা যায়
+      unlockAudioOnUserTap(lsAudio);
 
       loadingEl.classList.remove('hidden');
       revealEl.classList.remove('active');
-      noteEl.innerHTML = '<i class="fas fa-volume-up"></i> Playing loud...';
 
       modal.style.display = 'flex';
 
       const revealDelay = buildSequentialNameElements(nameEl, loveStoryConfig.name);
 
-      // নাম ও '+' চিহ্ন ওঠা শেষ হলে লোডিং শেষ, মেসেজ প্রকাশ ও সর্বোচ্চ ভলিউমে অডিও চালু
       const tReveal = setTimeout(() => {
+        if (!isLoveStoryModalOpen) return;
         loadingEl.classList.add('hidden');
         revealEl.classList.add('active');
-
-        const lsAudio = document.getElementById('loveStoryAudio');
-        lsAudio.volume = 1.0;
-        lsAudio.currentTime = 0;
-        lsAudio.play().catch(() => {
-          noteEl.innerHTML = '<i class="fas fa-info-circle"></i> Tap screen or add love_story.mp3 to play audio';
-        });
+        playLoveStorySound();
       }, revealDelay);
 
       loveStoryTimers.push(tReveal);
     }
 
     function closeLoveStoryModal() {
+      isLoveStoryModalOpen = false;
       clearLoveStoryTimers();
       document.getElementById('loveStoryModal').style.display = 'none';
       const lsAudio = document.getElementById('loveStoryAudio');
@@ -556,7 +613,7 @@
         title: document.getElementById('lsEditTitle').value.trim().slice(0, 60) || DEFAULT_LOVE_STORY.title,
         name: document.getElementById('lsEditName').value.trim().slice(0, 80) || DEFAULT_LOVE_STORY.name,
         message: document.getElementById('lsEditMessage').value.trim().slice(0, 240) || DEFAULT_LOVE_STORY.message,
-        audioSrc: document.getElementById('lsEditAudio').value.trim().slice(0, 200) || DEFAULT_LOVE_STORY.audioSrc
+        audioSrc: document.getElementById('lsEditAudio').value.trim().slice(0, 350) || DEFAULT_LOVE_STORY.audioSrc
       };
 
       btn.disabled = true;
@@ -739,6 +796,17 @@
       }
     }
 
+    function showSuccessLoginAnimation() {
+      return new Promise(resolve => {
+        const overlay = document.getElementById('loginSuccessOverlay');
+        overlay.style.display = 'flex';
+        setTimeout(() => {
+          overlay.style.display = 'none';
+          resolve();
+        }, 1450);
+      });
+    }
+
     async function checkPass() {
       const errEl = document.getElementById('err');
       const loginBtn = document.getElementById('loginBtn');
@@ -757,6 +825,7 @@
         wrongAttempts = 0;
         document.getElementById('pass').value = '';
         closeLogin();
+        await showSuccessLoginAnimation();
         openUploadModalWithData();
         loadGallery();
       } catch (e) {
