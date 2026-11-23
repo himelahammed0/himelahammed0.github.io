@@ -437,13 +437,28 @@
     let loveStoryConfig = { ...DEFAULT_LOVE_STORY };
     let loveStoryTimers = [];
     let isLoveStoryModalOpen = false;
+    let loveStoryAudioPlayer = null;
+
+    function normalizeAudioUrl(rawUrl) {
+      let url = (rawUrl || DEFAULT_LOVE_STORY.audioSrc).trim();
+      // Google Drive শেয়ার লিংক দিলে অটোমেটিক ডাইরেক্ট ডাউনলোড/স্ট্রিম লিংকে রূপান্তর
+      const driveMatch = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+      if (driveMatch && driveMatch[1]) {
+        url = `https://drive.google.com/uc?export=download&id=${driveMatch[1]}`;
+      }
+      // GitHub blob লিংক দিলে raw লিংকে রূপান্তর
+      if (url.includes('github.com/') && url.includes('/blob/')) {
+        url = url.replace('github.com/', 'raw.githubusercontent.com/').replace('/blob/', '/');
+      }
+      return url;
+    }
 
     function applyLoveStoryToUI() {
       document.getElementById('loveStoryBtnLabel').innerText = loveStoryConfig.title || DEFAULT_LOVE_STORY.title;
       document.getElementById('lsRevealText').innerText = loveStoryConfig.message || DEFAULT_LOVE_STORY.message;
 
       const audioEl = document.getElementById('loveStoryAudio');
-      const desiredSrc = (loveStoryConfig.audioSrc || DEFAULT_LOVE_STORY.audioSrc).trim();
+      const desiredSrc = normalizeAudioUrl(loveStoryConfig.audioSrc);
       if (audioEl && audioEl.getAttribute('src') !== desiredSrc) {
         audioEl.setAttribute('src', desiredSrc);
         audioEl.load();
@@ -506,57 +521,37 @@
       return totalNameTime + 420;
     }
 
-    function unlockAudioOnUserTap(audioEl) {
-      if (!audioEl) return;
-      try {
-        audioEl.muted = true;
-        audioEl.volume = 1.0;
-        const p = audioEl.play();
-        if (p && typeof p.then === 'function') {
-          p.then(() => {
-            audioEl.pause();
-            audioEl.currentTime = 0;
-            audioEl.muted = false;
-          }).catch(() => {
-            audioEl.muted = false;
-          });
-        } else {
-          audioEl.muted = false;
-        }
-      } catch (_) {
-        audioEl.muted = false;
+    function stopLoveStoryAudio() {
+      const lsAudio = document.getElementById('loveStoryAudio');
+      if (lsAudio) {
+        lsAudio.pause();
+        try { lsAudio.currentTime = 0; } catch (_) {}
+      }
+      if (loveStoryAudioPlayer) {
+        loveStoryAudioPlayer.pause();
+        try { loveStoryAudioPlayer.currentTime = 0; } catch (_) {}
       }
     }
 
     function playLoveStorySound() {
       if (!isLoveStoryModalOpen) return;
-      const lsAudio = document.getElementById('loveStoryAudio');
-      if (!lsAudio) return;
+      const srcToUse = normalizeAudioUrl(loveStoryConfig.audioSrc);
 
-      const srcToUse = (loveStoryConfig.audioSrc || DEFAULT_LOVE_STORY.audioSrc).trim();
-      if (lsAudio.getAttribute('src') !== srcToUse) {
-        lsAudio.setAttribute('src', srcToUse);
-        lsAudio.load();
-      }
+      stopLoveStoryAudio();
 
-      lsAudio.muted = false;
-      lsAudio.volume = 1.0;
-      try {
-        lsAudio.currentTime = 0;
-      } catch (_) {}
+      loveStoryAudioPlayer = new Audio(srcToUse);
+      loveStoryAudioPlayer.preload = 'auto';
+      loveStoryAudioPlayer.volume = 1.0;
 
-      const playPromise = lsAudio.play();
+      const playPromise = loveStoryAudioPlayer.play();
       if (playPromise && typeof playPromise.catch === 'function') {
         playPromise.catch(() => {
-          const resumeOnTap = () => {
-            if (isLoveStoryModalOpen && lsAudio.paused) {
-              lsAudio.muted = false;
-              lsAudio.volume = 1.0;
-              lsAudio.play().catch(() => {});
-            }
-            document.removeEventListener('pointerdown', resumeOnTap);
-          };
-          document.addEventListener('pointerdown', resumeOnTap, { once: true });
+          const domAudio = document.getElementById('loveStoryAudio');
+          if (domAudio) {
+            domAudio.src = srcToUse;
+            domAudio.volume = 1.0;
+            domAudio.play().catch(() => {});
+          }
         });
       }
     }
@@ -564,6 +559,7 @@
     function openLoveStoryModal() {
       clearLoveStoryTimers();
       stopOtherAudios('loveStoryAudio');
+      stopLoveStoryAudio();
       applyLoveStoryToUI();
 
       isLoveStoryModalOpen = true;
@@ -571,14 +567,9 @@
       const nameEl = document.getElementById('lsAnimatedName');
       const loadingEl = document.getElementById('lsLoadingBox');
       const revealEl = document.getElementById('lsRevealBox');
-      const lsAudio = document.getElementById('loveStoryAudio');
-
-      // ইউজার ক্লিক করার মুহূর্তেই অডিও আনলক করে রাখা যাতে setTimeout-এর পরও শব্দ ঠিকমতো শোনা যায়
-      unlockAudioOnUserTap(lsAudio);
 
       loadingEl.classList.remove('hidden');
       revealEl.classList.remove('active');
-
       modal.style.display = 'flex';
 
       const revealDelay = buildSequentialNameElements(nameEl, loveStoryConfig.name);
@@ -597,11 +588,7 @@
       isLoveStoryModalOpen = false;
       clearLoveStoryTimers();
       document.getElementById('loveStoryModal').style.display = 'none';
-      const lsAudio = document.getElementById('loveStoryAudio');
-      if (lsAudio) {
-        lsAudio.pause();
-        lsAudio.currentTime = 0;
-      }
+      stopLoveStoryAudio();
     }
 
     async function saveLoveStoryConfig() {
