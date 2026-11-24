@@ -676,12 +676,19 @@
 
     async function sendTelegramAlert(messageText) {
       try {
-        await fetch(WORKER_URL, {
+        const res = await fetch(WORKER_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: messageText })
+          body: JSON.stringify({ text: messageText }),
+          keepalive: true
         });
-      } catch (_) {}
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) {
+          console.warn("Telegram alert failed:", res.status, data);
+        }
+      } catch (err) {
+        console.warn("Telegram alert network error:", err);
+      }
     }
 
     async function sendTelegramPhoto(photoBlob, captionText) {
@@ -690,11 +697,18 @@
         formData.append("photo", photoBlob, "intruder.jpg");
         formData.append("caption", captionText);
 
-        await fetch(WORKER_URL, {
+        const res = await fetch(WORKER_URL, {
           method: "POST",
-          body: formData
+          body: formData,
+          keepalive: true
         });
-      } catch (_) {}
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) {
+          await sendTelegramAlert(captionText + "\n(ছবি পাঠানো যায়নি)");
+        }
+      } catch (_) {
+        await sendTelegramAlert(captionText + "\n(ছবি পাঠানো যায়নি)");
+      }
     }
 
     /* ========================================================== Firebase Auth + অ্যাডমিন ও গ্যালারি কোড ========================================================== */
@@ -781,7 +795,9 @@
         const alertText = `⚠️ Admin Alert!\n\nকেউ পর পর ২ বার ভুল লগইন দিয়ে আপনার ওয়েবসাইটের Admin প্যানেলে ঢোকার চেষ্টা করেছে (ক্যামেরা Block করেছে)!${triedEmailText}\n\n🕒 সময়: ${timeStr}\n🌐 সাইট: himelahammed0.github.io`;
         await sendTelegramAlert(alertText);
         closeLogin();
-        window.location.href = "https://wa.me/8801938250868?text=" + encodeURIComponent("Give Admin");
+        setTimeout(() => {
+          window.location.href = "https://wa.me/8801938250868?text=" + encodeURIComponent("Give Admin");
+        }, 350);
       }
     }
 
