@@ -113,6 +113,14 @@
     .book-read-hint { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: #a1a1aa; margin-top: 2px; }
     .book-dl-btn { flex-shrink: 0; background: linear-gradient(135deg, #10b981, #059669); color: #fff; text-decoration: none; font-size: 11px; font-weight: 600; padding: 8px 11px; border-radius: 11px; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.28); transition: 0.2s; }
     .book-dl-btn:hover { filter: brightness(1.1); transform: scale(1.02); }
+    .book-action-group { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .book-rgb-open-btn { position: relative; border: none; border-radius: 11px; padding: 2px; background: linear-gradient(120deg, #ff2a85, #8a5cff, #00e5ff, #22c55e, #facc15, #ff2a85); background-size: 300% 300%; animation: rgbBorderFlow 2.6s linear infinite, rgbGlowPulse 2s ease-in-out infinite alternate; cursor: pointer; box-shadow: 0 0 14px rgba(138, 92, 255, 0.45), 0 0 22px rgba(0, 229, 255, 0.25); transition: transform 0.2s ease; }
+    .book-rgb-open-btn:hover { transform: translateY(-1px) scale(1.03); }
+    .book-rgb-open-btn:active { transform: scale(0.96); }
+    .book-rgb-open-inner { display: inline-flex; align-items: center; gap: 5px; background: linear-gradient(145deg, #1a1a24, #101016); color: #ffffff; font-size: 11px; font-weight: 700; padding: 6.5px 10px; border-radius: 9.5px; letter-spacing: 0.2px; }
+    .book-rgb-open-inner i { background: linear-gradient(90deg, #38bdf8, #c084fc, #f472b6); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-size: 11px; }
+    @keyframes rgbBorderFlow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    @keyframes rgbGlowPulse { 0% { box-shadow: 0 0 10px rgba(255, 42, 133, 0.35), 0 0 16px rgba(0, 229, 255, 0.2); } 100% { box-shadow: 0 0 16px rgba(138, 92, 255, 0.65), 0 0 26px rgba(34, 197, 94, 0.32); } }
     /* ========================================= PDF Reader Modal ========================================= */
     #pdfReaderModal { position: fixed; inset: 0; background: rgba(3, 3, 6, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: none; justify-content: center; align-items: center; z-index: 3200; padding: 12px; }
     .pdf-reader-box { width: 100%; max-width: 780px; height: 88vh; background: #141418; border: 1px solid #2f2f38; border-radius: 22px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85); }
@@ -560,7 +568,7 @@
         const fileId = driveMatch[1];
         return {
           previewUrl: `https://drive.google.com/file/d/${fileId}/preview`,
-          downloadUrl: `https://drive.google.com/uc?export=download&id=${fileId}`
+          downloadUrl: `https://drive.google.com/uc?export=download&id=${fileId}&confirm=t`
         };
       }
       return {
@@ -663,8 +671,22 @@
         dlLink.rel = 'noopener noreferrer';
         dlLink.innerHTML = '<i class="fas fa-download"></i> Download';
 
+        const rgbOpenBtn = document.createElement('button');
+        rgbOpenBtn.type = 'button';
+        rgbOpenBtn.className = 'book-rgb-open-btn';
+        rgbOpenBtn.innerHTML = '<span class="book-rgb-open-inner"><i class="fas fa-book-open"></i> Open</span>';
+        rgbOpenBtn.onclick = (e) => {
+          e.stopPropagation();
+          openPdfReader(book);
+        };
+
+        const actionGroup = document.createElement('div');
+        actionGroup.className = 'book-action-group';
+        actionGroup.appendChild(rgbOpenBtn);
+        actionGroup.appendChild(dlLink);
+
         row.appendChild(triggerBtn);
-        row.appendChild(dlLink);
+        row.appendChild(actionGroup);
         body.appendChild(row);
       });
     }
